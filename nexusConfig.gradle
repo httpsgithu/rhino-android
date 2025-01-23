@@ -1,21 +1,19 @@
+Properties properties = new Properties()
+if (project.rootProject.file('gradle.properties').canRead()) {
+        properties.load(project.rootProject.file("gradle.properties").newDataInputStream())
+}
+
 // Default parameters
-if (!project.hasProperty("nexusUrl")) {
-    ext.nexusUrl = "file:///tmp/sdkRepo"
-}
-
-if (!project.hasProperty("nexusUsername")) {
-    ext.nexusUsername = ""
-}
-
-if (!project.hasProperty("nexusPassword")) {
-    ext.nexusPassword = ""
-}
+ext.nexusUrl = properties.getProperty("nexusUrl", "file:///tmp/sdkRepo")
+ext.nexusUsername = properties.getProperty("nexusUsername", "")
+ext.nexusPassword = properties.getProperty("nexusPassword", "")
 
 ext.nexusRelease = "${nexusUrl}/service/local/staging/deploy/maven2/"
 ext.nexusSnapshot = "${nexusUrl}/content/repositories/snapshots/"
 
 private boolean signingConfigured() {
-    return project.hasProperty("signing.keyId") && project.hasProperty("signing.password") \
+    return project.hasProperty("signing.keyId") \
+      && project.hasProperty("signing.password") \
       && project.hasProperty("signing.secretKeyRingFile")
 }
 
@@ -32,7 +30,6 @@ allprojects {
         if (signingConfigured()) {
             beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
         }
-
         repository(url: nexusRelease) {
             authentication(userName: nexusUsername, password: nexusPassword)
         }
